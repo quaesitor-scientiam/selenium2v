@@ -1,4 +1,4 @@
-module common
+module errors
 
 const support_msg = 'For documentation on this error, please visit:'
 const error_url = 'https://www.selenium.dev/documentation/webdriver/troubleshooting/errors'

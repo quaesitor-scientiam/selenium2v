@@ -1,5 +1,5 @@
 Module {
-	name: 'selenium2v'
+	name: 'vSelenium'
 	description: ''
 	version: '0.0.1'
 	license: 'MIT'
