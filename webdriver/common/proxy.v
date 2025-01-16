@@ -1,4 +1,4 @@
-module proxy
+module common
 
 enum ProxyType {
 	direct
