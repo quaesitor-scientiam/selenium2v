@@ -19,10 +19,7 @@ pub fn ChromiumService.init(executable_path ?string, port int, service_args ?[]s
 	if service_args == none {
 		c.service_args = []
 	}
-	mut key := driver_path_env_key
-	if driver_path_env_key == none {
-		key = 'SE_CHROMEDRIVER'
-	}
+	mut key := if driver_path_env_key == none { 'SE_CHROMEDRIVER' } else { driver_path_env_key }
 	if c.log_output != none {
 		workaround := c.log_output
 		if workaround is string {

@@ -1,7 +1,7 @@
 module chromium
 
 import webdriver.remote { RemoteWebDriver }
-import webdriver.common { ArgOptions, Service }
+import webdriver.common { ArgOptions, DriverFinder, IService }
 
 // ChromiumDriver - Create a new WebDriver instance of the ChromiumDriver. Starts the
 //        service and then creates new WebDriver instance of ChromiumDriver.
@@ -17,10 +17,14 @@ pub struct ChromiumDriver {
 	browser_name  ?string
 	vendor_prefix ?string
 	options       ArgOptions
-	service       ?Service
+	service       ?IService
 	keep_alive    bool = true
 }
 
 pub fn ChromiumDriver.init[T, S](browser_name string, vendor_prefix string, options T, service S, keep_alive bool) ChromiumDriver {
-	return ChromiumDriver{}
+	mut finder := DriverFinder.init(service, options)
+	finder.get_browser_path()
+	return ChromiumDriver{
+		service: service
+	}
 }

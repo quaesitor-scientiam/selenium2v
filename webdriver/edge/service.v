@@ -3,7 +3,7 @@ module edge
 import webdriver { SubprocessStdAlias }
 import webdriver.chromium { ChromiumService }
 
-// Service - A Service class that is responsible for the starting and stopping of
+// EdgeService - A Service class that is responsible for the starting and stopping of
 //    `msedgedriver`.
 struct EdgeService {
 	ChromiumService
@@ -19,6 +19,10 @@ fn EdgeService.init(executable_path ?string, port int, service_args ?[]string, l
 	if driver_path_env_key == none {
 		key = 'SE_EDGEDRIVER'
 	}
-	return EdgeService{ChromiumService.init(executable_path, port, args, log_output, key,
-		env)}
+	es := EdgeService{
+		ChromiumService: ChromiumService.init(executable_path, port, args, log_output,
+			key, env)
+	}
+
+	return es
 }

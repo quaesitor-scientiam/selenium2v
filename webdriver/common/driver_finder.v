@@ -7,14 +7,33 @@ import os
 //
 //    :param service: instance of the driver service class.
 //    :param options: instance of the browser options class.
-struct DriverFinder {
+pub struct DriverFinder {
 mut:
-	service Service
-	options BaseOptions
+	service IService
+	options IBaseOptions
 	paths   map[string]string = {
 		'driver_path':  ''
 		'browser_path': ''
 	}
+}
+
+pub fn DriverFinder.init[S, O](service S, options O) DriverFinder {
+	df := DriverFinder{
+		service: service
+		options: options
+		paths:   {
+			'driver_path':  ''
+			'browser_path': ''
+		}
+	}
+	return df
+}
+
+pub fn (mut d DriverFinder) get_browser_path() string {
+	bp := d.binary_paths() or {
+		map[string]string{}
+	}
+	return bp['driver_path']
 }
 
 fn (mut d DriverFinder) binary_paths() !map[string]string {
@@ -22,16 +41,21 @@ fn (mut d DriverFinder) binary_paths() !map[string]string {
 		return d.paths
 	}
 
-	// browser := d.options.capabilities{}['browserName']
-	path := d.service.path
-	if path != none {
+	path := d.unwind_path()
+	if path.len > 0 {
 		if os.is_file(path) == false {
 			return error('The path ${path} is not a valid file')
 		}
 		d.paths['driver_path'] = path
 	} else {
-		// TODO: implement SeleniumManager handling
+		println('SeleniumManager is not implemented')
 	}
-
 	return d.paths
+}
+
+fn (d &DriverFinder) unwind_path() string {
+	if d.service.path != none {
+		return d.service.path
+	}
+	return ''
 }

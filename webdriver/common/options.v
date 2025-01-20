@@ -45,8 +45,18 @@ struct ProxyDescriptor {
 	name string
 }
 
+pub interface IBaseOptions {
+mut:
+	capabilities map[string]Capability_types
+	set_capability(name string, value Capability_types)
+}
+
+pub fn (mut b BaseOptions) set_capability(name string, value Capability_types) {
+	b.capabilities[name] = value
+}
+
 // BaseOptions - Gets and Sets the version of the browser.
-pub struct BaseOptions {
+pub struct BaseOptions implements IBaseOptions {
 mut:
 	browser_version             ?string
 	platform_name               ?string
@@ -84,10 +94,6 @@ fn BaseOptions.init() BaseOptions {
 	}
 	b.set_capability('pageLoadStrategy', PageLoadStrategy.normal)
 	return b
-}
-
-pub fn (mut b BaseOptions) set_capability(name string, value Capability_types) {
-	b.capabilities[name] = value
 }
 
 pub struct ArgOptions {
