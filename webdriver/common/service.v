@@ -113,7 +113,7 @@ fn (mut s Service) start() {
 	}
 }
 
-fn (mut s Service) env_path() ?string {
+pub fn (mut s Service) env_path() ?string {
 	if s.env[s.driver_path_env_key].len > 0 {
 		return s.env[s.driver_path_env_key]
 	}

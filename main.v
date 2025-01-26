@@ -1,8 +1,9 @@
 module main
 
-import webdriver.edge { EdgeDriver, EdgeOptions }
+import webdriver.edge { EdgeDriver, EdgeOptions, EdgeService }
+import webdriver.common
 
-fn open_browser(download_path string) ?EdgeDriver[O, S] {
+fn open_browser(download_path string) ?EdgeDriver[EdgeOptions, EdgeService] {
 	mut options := EdgeOptions.init()
 	options.add_experimental_option('excludeSwitches', ['enable-logging'])
 	options.add_experimental_option('detach', true)
@@ -10,7 +11,7 @@ fn open_browser(download_path string) ?EdgeDriver[O, S] {
 		'download.default_directory': download_path
 	})
 
-	driver := EdgeDriver.init(options, none)
+	driver := EdgeDriver.init(options, ?EdgeService(none))
 
 	return driver
 }
