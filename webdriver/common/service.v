@@ -28,7 +28,7 @@ mut:
 //    - param log_output: (Optional) int representation of STDOUT/DEVNULL, any IO instance or String path to file
 //    - param env: (Optional) Mapping of environment variables for the new process, defaults to `os.environ`
 pub struct Service implements IService {
-mut:
+pub mut:
 	port                int
 	process             ?Process
 	path                ?string
@@ -62,7 +62,11 @@ pub fn Service.init(executable_path ?string, port int, env ?map[string]string, l
 	svc.service_url = 'http://${join_host_port('localhost', svc.port)}'
 	svc.env = if env == none { os.environ() } else { env.clone() }
 	svc.driver_path_env_key = driver_path_env_key
-	svc.path = svc.env[svc.driver_path_env_key]
+	if svc.env_path() == none {
+		svc.path = executable_path
+	} else {
+		svc.path = svc.env_path()
+	}
 
 	return svc
 }
@@ -107,4 +111,11 @@ fn (mut s Service) start() {
 			break
 		}
 	}
+}
+
+fn (mut s Service) env_path() ?string {
+	if s.env[s.driver_path_env_key].len > 0 {
+		return s.env[s.driver_path_env_key]
+	}
+	return none
 }

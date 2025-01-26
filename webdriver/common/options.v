@@ -45,19 +45,10 @@ struct ProxyDescriptor {
 	name string
 }
 
-pub interface IBaseOptions {
-mut:
-	capabilities map[string]Capability_types
-	set_capability(name string, value Capability_types)
-}
-
-pub fn (mut b BaseOptions) set_capability(name string, value Capability_types) {
-	b.capabilities[name] = value
-}
-
 // BaseOptions - Gets and Sets the version of the browser.
-pub struct BaseOptions implements IBaseOptions {
-mut:
+pub struct BaseOptions {
+pub mut:
+	capabilities                map[string]Capability_types
 	browser_version             ?string
 	platform_name               ?string
 	accept_insecure_certs       bool
@@ -68,11 +59,14 @@ mut:
 	page_load_strategy          PageLoadStrategy
 	unhandled_prompt_behavior   ?string
 	timeouts                    ?string
-	proxy                       ?string
+	proxy                       ?Proxy
 	enable_downloads            bool
-	capabilities                map[string]Capability_types
 	mobile_options              bool
 	ignore_local_proxy          bool
+}
+
+pub fn (mut b BaseOptions) set_capability(name string, value Capability_types) {
+	b.capabilities[name] = value
 }
 
 fn BaseOptions.init() BaseOptions {

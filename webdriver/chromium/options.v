@@ -6,7 +6,7 @@ type OptionTypes = string | int | bool | map[string]string | []string
 
 pub struct ChromiumOptions {
 	ArgOptions
-mut:
+pub mut:
 	key                  string
 	binary_location      string
 	extension_files      []string

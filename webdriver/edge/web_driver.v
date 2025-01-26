@@ -3,11 +3,11 @@ module edge
 import webdriver.chromium { ChromiumDriver }
 import webdriver.common { Edge }
 
-pub struct EdgeDriver {
-	ChromiumDriver
+pub struct EdgeDriver[O, S] {
+	ChromiumDriver[O, S]
 }
 
-pub fn EdgeDriver.init(options ?EdgeOptions, service ?EdgeService) ?EdgeDriver {
+pub fn EdgeDriver.init[O, S](options O, service ?S) ?EdgeDriver[O, S] {
 	mut svc := service
 	mut opts := options
 	if opts == none {

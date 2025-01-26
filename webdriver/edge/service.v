@@ -5,7 +5,7 @@ import webdriver.chromium { ChromiumService }
 
 // EdgeService - A Service class that is responsible for the starting and stopping of
 //    `msedgedriver`.
-struct EdgeService {
+pub struct EdgeService {
 	ChromiumService
 }
 
