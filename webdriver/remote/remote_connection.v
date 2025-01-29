@@ -22,7 +22,7 @@ pub struct RemoteConnection {
 // TODO - bug in function arg being declared mutable.
 pub fn RemoteConnection.init(remote_server_addr ?string, keep_alive ?bool, ignore_proxy ?bool, ignore_certificates ?bool,
 	init_args_for_pool_manager ?map[string]string, client_config ?ClientConfig) RemoteConnection {
-	mut new_client_config := client_config
+	mut new_client_config := ClientConfig{}
 	{}
 	if client_config == none {
 		new_client_config = ClientConfig.init(remote_server_addr, init_args_for_pool_manager)
