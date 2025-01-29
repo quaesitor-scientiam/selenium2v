@@ -1,9 +1,9 @@
 module common
 
-import net
-import net.websocket
+import net { dial_tcp }
 import term
 import os
+import webdriver
 
 @[heap; params]
 struct Hosts {
@@ -49,7 +49,7 @@ fn free_port() int {
 //      port - An integer port.
 fn join_host_port(host string, port int) string {
 	if host.contains(':') && !host.starts_with('[') {
-		return '[${host}]:${port}'
+		return '${host}:${port}'
 	} else {
 		return '${host}:${port}'
 	}
@@ -59,20 +59,19 @@ fn join_host_port(host string, port int) string {
 //
 //    Args:
 //     - port - The port to connect.
-fn is_connectable(port int, hosts Hosts) bool {
-	mut h := hosts
-	h.data = ['localhost']
+fn is_connectable(port int, hostaddress ?string) bool {
+	mut host := ''
+	if hostaddress == none {
+		host = 'localhost'
+	} else {
+		host = webdriver.unwind[string](hostaddress)
+	}
 
-	mut ws := websocket.new_client(join_host_port(h.data[0], port)) or {
-		rlog('ws.new_client error ${err}')
+	mut client := dial_tcp(join_host_port(host, port)) or {
+		rlog('net.dial_tcp error ${err}')
 		return false
 	}
-	defer { unsafe { ws.free() } }
-	ws.connect() or {
-		clog('ws.connect error: ${err}')
-		return false
-	}
-	ws.close(0, '') or { rlog('ws.close error ${err}') }
+	defer { client.close() or {} }
 	return true
 }
 

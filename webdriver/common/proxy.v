@@ -1,6 +1,6 @@
 module common
 
-enum ProxyType {
+pub enum ProxyType {
 	direct
 	manual
 	pac
@@ -12,7 +12,8 @@ enum ProxyType {
 
 // Proxy - Proxy contains information about proxy type and necessary proxy
 //    settings.
-struct Proxy {
+pub struct Proxy {
+pub:
 	proxy_type           ProxyType = .unspecified
 	autodetect           bool
 	ftp_proxy            string

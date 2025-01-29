@@ -30,6 +30,12 @@ pub fn ChromiumDriver.init[O, S](browser_name string, vendor_prefix string, opti
 	}
 	drv.options.binary_location = finder.get_browser_path()
 	drv.options.browser_version = none
-	drv.service.path = drv.service.env_path()
+	if drv.service.env_path() == none {
+		drv.service.path = finder.get_driver_path()
+	} else {
+		drv.service.path = drv.service.env_path()
+	}
+	drv.service.start()
+
 	return drv
 }

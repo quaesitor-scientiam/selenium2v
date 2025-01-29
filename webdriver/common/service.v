@@ -7,7 +7,7 @@ import time
 
 pub interface IService {
 mut:
-	process             ?Process
+	process             Process
 	port                int
 	path                ?string
 	env                 map[string]string
@@ -30,7 +30,7 @@ mut:
 pub struct Service implements IService {
 pub mut:
 	port                int
-	process             ?Process
+	process             Process
 	path                ?string
 	service_args        ?[]string
 	log_output          ?SubprocessStdAlias
@@ -78,6 +78,8 @@ fn (mut s Service) start_process(path string) {
 	mut cmd := [path]
 	cmd << s.command_line_args()
 	s.process = os.new_process(cmd[0])
+	s.process.args = cmd[1..]
+	s.process.run()
 }
 
 // start - Starts the Service.
@@ -85,32 +87,37 @@ fn (mut s Service) start_process(path string) {
 //	Exceptions:
 //     - WebDriverException: Raised either when it can't start the service
 //           or when it can't connect to the service
-fn (mut s Service) start() {
+pub fn (mut s Service) start() {
 	if s.path != none {
 		s.start_process(s.path)
 	} else {
 		eprintln(WebDriverException{ msg: 'Service path cannot be NONE' })
+		exit(1)
 	}
 
 	mut cnt := 0
 	for true {
-		if s.process != none {
-			if s.process.is_alive() == false {
-				if is_connectable(s.port) {
-					break
-				}
-				time.sleep(510 * time.microsecond)
-				cnt += 1
-				if cnt == 70 {
-					eprintln(WebDriverException{ msg: 'Cannot connect to the Service ${s.path}' })
-					break
-				}
+		if s.process.is_alive() == true {
+			if s.is_connectable() {
+				break
+			}
+			time.sleep(510 * time.microsecond)
+			cnt += 1
+			if cnt == 70 {
+				eprintln(WebDriverException{ msg: 'Cannot connect to the Service ${s.path}' })
+				break
 			}
 		} else {
 			eprintln(WebDriverException{ msg: 'Service ${s.path} unexpectedly exited.' })
 			break
 		}
 	}
+}
+
+// is_connectable - Establishes a socket connection to determine if the service running
+//        on the port is accessible.
+fn (s Service) is_connectable() bool {
+	return is_connectable(s.port, none)
 }
 
 pub fn (mut s Service) env_path() ?string {

@@ -6,7 +6,6 @@ import log
 import errors { WebDriverException }
 import webdriver
 import x.json2
-import json
 
 enum PlatformArch {
 	darwin
@@ -121,7 +120,7 @@ fn (mut s SeleniumManager) binary_paths(args []string) map[string]string {
 //
 //        :Raises: WebDriverException if the platform is unsupported
 fn (mut s SeleniumManager) get_binary() string {
-	parent, name, ext := os.split_path(@FILE)
+	parent, name, _ := os.split_path(@FILE)
 	mut compiled_path := os.join_path(parent, name)
 	exe := if get_host_os() == pref.OS.windows { ?string('.exe') } else { none }
 	if exe != none {
