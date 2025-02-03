@@ -1,7 +1,6 @@
 module main
 
 import webdriver.edge { EdgeDriver, EdgeOptions, EdgeService }
-import webdriver.common
 
 fn open_browser(download_path string) ?EdgeDriver[EdgeOptions, EdgeService] {
 	mut options := EdgeOptions.init()

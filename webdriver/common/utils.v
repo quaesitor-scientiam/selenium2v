@@ -82,3 +82,5 @@ fn clog(message string) {
 fn rlog(message string) {
 	eprintln(term.colorize(term.red, message))
 }
+
+fn trim_space[K, V](key K, value V) bool {}

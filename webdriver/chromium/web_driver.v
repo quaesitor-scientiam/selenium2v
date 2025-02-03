@@ -3,26 +3,24 @@ module chromium
 import webdriver.remote { RemoteWebDriver }
 import webdriver.common { DriverFinder }
 
-// ChromiumDriver - Create a new WebDriver instance of the ChromiumDriver. Starts the
-//        service and then creates new WebDriver instance of ChromiumDriver.
-//
-//    Args:
-//         - browser_name - Browser name used when matching capabilities.
-//         - vendor_prefix - Company prefix to apply to vendor-specific WebDriver extension commands.
-//         - options - this takes an instance of ChromiumOptions
-//         - service - Service object for handling the browser driver if you need to pass extra details
-//         - keep_alive - Whether to configure ChromiumRemoteConnection to use HTTP keep-alive.
+// ChromiumDriver - Controls the WebDriver instance of ChromiumDriver and allows you to
+//    drive the browser.
 pub struct ChromiumDriver[O, S] {
 	RemoteWebDriver
 mut:
 	browser_name  ?string
-	vendor_prefix ?string
+	vendor_prefix string
 	options       O
 	service       S
 	keep_alive    bool = true
 }
 
-pub fn ChromiumDriver.init[O, S](browser_name string, vendor_prefix string, options O, service S, keep_alive bool) ChromiumDriver[O, S] {
+pub fn ChromiumDriver.init[O, S](browser_name ?string, vendor_prefix string, options O, service S, keep_alive ?bool) ChromiumDriver[O, S] {
+	mut kalive := true
+	if keep_alive != none {
+		kalive = keep_alive
+	}
+
 	mut finder := DriverFinder.init(service, options)
 	mut drv := ChromiumDriver[O, S]{
 		service: service
@@ -36,6 +34,9 @@ pub fn ChromiumDriver.init[O, S](browser_name string, vendor_prefix string, opti
 		drv.service.path = drv.service.env_path()
 	}
 	drv.service.start()
+
+	executor := ChromiumRemoteConnection.init(drv.service.service_url, browser_name, vendor_prefix,
+		kalive, drv.options.ignore_local_proxy, none)
 
 	return drv
 }
