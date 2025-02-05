@@ -113,10 +113,10 @@ fn (r &RemoteConnection) get_connection_manager() ConnectionManager {
 			merge_in_place(mut &pool_manager_args, r.client_config.init_args_for_pool_manager)
 		}
 		if r.client_config.ignore_certificates {
-			pool_manager_args['cert_reqs'] = ?Any('CERT_NONE')
+			pool_manager_args['cert_reqs'] = wrap_opt_any('CERT_NONE')
 		} else if r.client_config.ca_certs != none {
-			pool_manager_args['cert_reqs'] = ?Any('CERT_REQUIRED')
-			pool_manager_args['ca_certs'] = ?Any(r.client_config.ca_certs)
+			pool_manager_args['cert_reqs'] = wrap_opt_any('CERT_REQUIRED')
+			pool_manager_args['ca_certs'] = wrap_opt_any(r.client_config.ca_certs)
 		}
 	}
 	if r.proxy_url != none {
@@ -127,4 +127,8 @@ fn (r &RemoteConnection) get_connection_manager() ConnectionManager {
 	return ConnectionManager{
 		args: pool_manager_args
 	}
+}
+
+fn wrap_opt_any(s ?string) ?Any {
+	return ?Any(?string(s))
 }
