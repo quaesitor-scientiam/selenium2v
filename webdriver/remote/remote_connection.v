@@ -129,6 +129,7 @@ fn (r &RemoteConnection) get_connection_manager() ConnectionManager {
 	}
 }
 
+// wrap_opt_any - fix issues with V's sumtype handling
 fn wrap_opt_any(s ?string) ?Any {
 	return ?Any(?string(s))
 }
