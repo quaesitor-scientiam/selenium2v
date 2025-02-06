@@ -8,5 +8,5 @@ pub fn unwind[T](value ?T) T {
 	if value != none {
 		return value
 	}
-	return ''
+	return T{}
 }

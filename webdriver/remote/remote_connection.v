@@ -39,7 +39,9 @@ pub fn RemoteConnection.init(ignore_proxy bool, client_config ?ClientConfig) Rem
 		}
 	}
 
-	rc.conn = rc.get_connection_manager()
+	if unwind(rc.client_config).keep_alive {
+		rc.conn = rc.get_connection_manager()
+	}
 
 	return rc
 }
