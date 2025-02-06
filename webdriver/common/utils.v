@@ -4,6 +4,9 @@ import net { dial_tcp }
 import term
 import os
 import webdriver
+import net.urllib { URL, parse }
+import log
+import errors { WebDriverException }
 
 @[heap; params]
 struct Hosts {
@@ -84,3 +87,21 @@ fn rlog(message string) {
 }
 
 fn trim_space[K, V](key K, value V) bool {}
+
+pub fn parse_url(s string) URL {
+	return parse(s) or {
+		log.error(WebDriverException{
+			error:  1
+			msg:    'Function urllib.parse unable to parse ${s} ended with Error ${err}'
+			screen: ''
+		}.str())
+		exit(1)
+	}
+}
+
+pub fn has_val(s string) bool {
+	if s.len > 0 {
+		return true
+	}
+	return false
+}

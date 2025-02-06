@@ -5,9 +5,11 @@ import net.urllib { URL }
 import log
 import encoding.base64
 import maps { merge, merge_in_place }
-import sync.pool
+import webdriver.common { has_val, parse_url }
+import encoding.iconv
+import webdriver { unwind }
 
-type Any = ?int | ?string
+type Any = ?int | ?string | map[string]string
 
 // RemoteConnection - A connection with the Remote WebDriver server.
 //
@@ -16,12 +18,13 @@ type Any = ?int | ?string
 pub struct RemoteConnection {
 	commands map[string][]string = remote_commands
 mut:
-	browser_name   ?string
-	client_config  ?ClientConfig
-	system         string
-	extra_commands ?map[string][]string
-	proxy_url      ?string
-	conn           ConnectionManager
+	browser_name     ?string
+	client_config    ?ClientConfig
+	system           string
+	extra_commands   ?map[string][]string
+	proxy_url        ?string
+	basic_proxy_auth ?string
+	conn             ConnectionManager
 }
 
 pub fn RemoteConnection.init(ignore_proxy bool, client_config ?ClientConfig) RemoteConnection {
@@ -105,7 +108,7 @@ fn (r &RemoteConnection) get_remote_connection_headers(parsed_url URL, keep_aliv
 	return headers
 }
 
-fn (r &RemoteConnection) get_connection_manager() ConnectionManager {
+fn (mut r RemoteConnection) get_connection_manager() ConnectionManager {
 	mut pool_manager_args := map[string]?Any{}
 	if r.client_config != none {
 		pool_manager_args['timeout'] = r.client_config.timeout
@@ -123,13 +126,48 @@ fn (r &RemoteConnection) get_connection_manager() ConnectionManager {
 		if r.proxy_url.to_lower().starts_with('sock') {
 			return ConnectionManager{r.proxy_url, pool_manager_args}
 		}
+		if r.identify_http_proxy_auth() {
+			r.proxy_url, r.basic_proxy_auth = r.separate_http_proxy_auth()
+			pool_manager_args['proxy_headers'] = make_headers(unwind(r.basic_proxy_auth))
+		}
+		return ConnectionManager{
+			url:  r.proxy_url
+			args: pool_manager_args
+		}
 	}
 	return ConnectionManager{
 		args: pool_manager_args
 	}
 }
 
+fn (r &RemoteConnection) identify_http_proxy_auth() bool {
+	parsed_url := parse_url(unwind(r.proxy_url))
+	if has_val(parsed_url.user.username) && has_val(parsed_url.user.password) {
+		return true
+	}
+	return false
+}
+
+fn (r &RemoteConnection) separate_http_proxy_auth() (string, string) {
+	parsed_url := parse_url(unwind(r.proxy_url))
+	proxy_without_auth := '${parsed_url.scheme}://${parsed_url.hostname()}:${parsed_url.port()}'
+	auth := '${parsed_url.user.username}:${parsed_url.user.password}'
+	return proxy_without_auth, auth
+}
+
 // wrap_opt_any - fix issues with V's sumtype handling
 fn wrap_opt_any(s ?string) ?Any {
 	return ?Any(?string(s))
+}
+
+fn make_headers(proxy_basic_auth string) map[string]string {
+	mut headers := map[string]string{}
+	if has_val(proxy_basic_auth) {
+		bytes := iconv.vstring_to_encoding(proxy_basic_auth, 'LATIN1') or {
+			eprintln(err)
+			exit(1)
+		}
+		headers['proxy_authorization'] = 'Basic ${base64.encode(bytes)}'
+	}
+	return headers
 }

@@ -1,9 +1,9 @@
 module remote
 
-import webdriver.common { Proxy, ProxyType }
+import webdriver.common { Proxy, ProxyType, parse_url }
 import encoding.base64
 import os
-import net.urllib { URL, parse }
+import net.urllib { URL }
 import log
 import errors
 
@@ -93,14 +93,7 @@ fn (c ClientConfig) get_proxy_url() ?string {
 	}
 	mut remote_add := URL{}
 	if c.remote_server_addr != none {
-		remote_add = parse(c.remote_server_addr) or {
-			log.error(errors.WebDriverException{
-				error:  1
-				msg:    'Function urllib.parse unable to parse ${c.remote_server_addr} ended with Error ${err}'
-				screen: ''
-			}.str())
-			exit(1)
-		}
+		remote_add = parse_url(c.remote_server_addr)
 	}
 
 	if proxy_type == .direct {
@@ -113,14 +106,7 @@ fn (c ClientConfig) get_proxy_url() ?string {
 				if value == '*' {
 					return none
 				}
-				n_url := parse(value) or {
-					log.error(errors.WebDriverException{
-						error:  1
-						msg:    'Function urllib.parse unable to parse ${value} ended with Error ${err}'
-						screen: ''
-					}.str())
-					exit(1)
-				}
+				n_url := parse_url(value)
 				if n_url.host.len > 0 && remote_add.host == n_url.host {
 					return none
 				}
