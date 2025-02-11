@@ -1,6 +1,5 @@
 module remote
 
-import sync.pool
 import net.http
 
 struct ConnectionManager {

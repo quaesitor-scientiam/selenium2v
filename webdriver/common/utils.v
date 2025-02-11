@@ -99,9 +99,20 @@ pub fn parse_url(s string) URL {
 	}
 }
 
-pub fn has_val(s string) bool {
-	if s.len > 0 {
-		return true
+pub fn has_val[T](value T) bool {
+	dump(value)
+	if typeof(value).name == 'string' {
+		if value.str().len > 0 {
+			return true
+		}
+	} else {
+		println(typeof(value).name)
 	}
 	return false
 }
+
+// fn keys_to_typing(value []string) {
+// 	for val in value {
+//
+// 	}
+// }

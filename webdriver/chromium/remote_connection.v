@@ -4,11 +4,9 @@ import webdriver.remote { ClientConfig, RemoteConnection }
 
 struct ChromiumRemoteConnection {
 	RemoteConnection
-mut:
-	browser_name ?string
 }
 
-fn ChromiumRemoteConnection.init(remote_server_addr ?string, browser_name ?string, vendor_prefix ?string, keep_alive bool, ignore_proxy bool,
+fn ChromiumRemoteConnection.init(remote_server_addr ?string, browser_name ?string, vendor_prefix string, keep_alive bool, ignore_proxy bool,
 	client_config ?ClientConfig) ChromiumRemoteConnection {
 	mut cc := ClientConfig{}
 	if client_config == none {
@@ -21,9 +19,16 @@ fn ChromiumRemoteConnection.init(remote_server_addr ?string, browser_name ?strin
 		cc = client_config
 	}
 
-	return ChromiumRemoteConnection{
+	mut rc := ChromiumRemoteConnection{
 		RemoteConnection: RemoteConnection.init(ignore_proxy, cc)
 	}
+	rc.browser_name = browser_name
+
+	cmds := remote_commands(vendor_prefix)
+	for k, v in cmds {
+		rc.commands[k] = v
+	}
+	return rc
 }
 
 fn remote_commands(vendor_prefix string) map[string][]string {
@@ -34,8 +39,8 @@ fn remote_commands(vendor_prefix string) map[string][]string {
 		'getNetworkConditions':    ['GET', r'/session/$sessionId/chromium/network_conditions']
 		'deleteNetworkConditions': ['DELETE', r'/session/$sessionId/chromium/network_conditions']
 		'executeCdpCommand':       ['POST', r'/session/$sessionId/' + '${vendor_prefix}/cdp/execute']
-		'getSinks':                ['GET', r'/session/$sessionId/' +
-			'${vendor_prefix}/cast/get_sinks']
+		'getSinks':                ['GET',
+			r'/session/$sessionId/' + '${vendor_prefix}/cast/get_sinks']
 		'getIssueMessage':         ['GET',
 			r'/session/$sessionId/' + '${vendor_prefix}cast/get_issue_message']
 		'setSinkToUse':            ['POST',

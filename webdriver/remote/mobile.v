@@ -1,0 +1,4 @@
+module remote
+
+struct Mobile {
+}

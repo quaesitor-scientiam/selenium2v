@@ -1,20 +1,6 @@
 module common
 
-// PageLoadStrategy - "Enum of possible page load strategies.
-//
-//    Selenium support following strategies:
-//        * normal (default) - waits for all resources to download
-//        * eager - DOM access is ready, but other resources like images may still be loading
-//        * none - does not block `WebDriver` at all
-//
-//    Docs: https://www.selenium.dev/documentation/webdriver/drivers/options/#pageloadstrategy.
-enum PageLoadStrategy {
-	normal
-	eager
-	none
-}
-
-type Capability_types = string | PageLoadStrategy
+import webdriver { CapabilityTypeDict, Capability_types, Dict, PageLoadStrategy }
 
 // BaseOptionsDescriptor -
 struct BaseOptionsDescriptor {
@@ -48,7 +34,7 @@ struct ProxyDescriptor {
 // BaseOptions - Gets and Sets the version of the browser.
 pub struct BaseOptions {
 pub mut:
-	capabilities                map[string]Capability_types
+	capabilities                CapabilityTypeDict
 	browser_version             ?string
 	platform_name               ?string
 	accept_insecure_certs       bool
@@ -61,7 +47,7 @@ pub mut:
 	timeouts                    ?string
 	proxy                       ?Proxy
 	enable_downloads            bool
-	mobile_options              bool
+	mobile_options              ?CapabilityTypeDict
 	ignore_local_proxy          bool
 }
 
@@ -83,7 +69,6 @@ fn BaseOptions.init() BaseOptions {
 		timeouts:                    none
 		proxy:                       none
 		enable_downloads:            false
-		mobile_options:              false
 		ignore_local_proxy:          false
 	}
 	b.set_capability('pageLoadStrategy', PageLoadStrategy.normal)
@@ -92,7 +77,7 @@ fn BaseOptions.init() BaseOptions {
 
 pub struct ArgOptions {
 	BaseOptions
-	arguments             []string
+	arguments             Capability_types
 	binary_location_error string
 	fedcm_capability      string
 }
@@ -110,14 +95,13 @@ pub fn ArgOptions.init[T](dc T) ArgOptions {
 	}
 	return ArgOptions{
 		BaseOptions:           b
-		arguments:             []
 		binary_location_error: 'Binary Location Must be a String'
 		fedcm_capability:      'fedcm:accounts'
 	}
 }
 
-fn struct_values[T](s T) map[string]string {
-	mut res := map[string]string{}
+fn struct_values[T](s T) Dict {
+	mut res := Dict{}
 	$if T is $struct {
 		$for field in T.fields {
 			res[field.name] = s.$(field.name).str()

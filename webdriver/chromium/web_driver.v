@@ -37,6 +37,7 @@ pub fn ChromiumDriver.init[O, S](browser_name ?string, vendor_prefix string, opt
 
 	executor := ChromiumRemoteConnection.init(drv.service.service_url, browser_name, vendor_prefix,
 		kalive, drv.options.ignore_local_proxy, none)
+	RemoteWebDriver.init(command_executor: executor, options: options)
 
 	return drv
 }
