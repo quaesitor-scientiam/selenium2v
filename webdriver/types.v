@@ -15,7 +15,7 @@ pub type CapabilityTypeDict = map[string]Capability_types
 //        * none - does not block `WebDriver` at all
 //
 //    Docs: https://www.selenium.dev/documentation/webdriver/drivers/options/#pageloadstrategy.
-enum PageLoadStrategy {
+pub enum PageLoadStrategy {
 	normal
 	eager
 	none

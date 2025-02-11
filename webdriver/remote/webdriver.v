@@ -1,11 +1,13 @@
 module remote
 
 import arrays
-import webdriver {Dict, CapabilityTypeDict}
-import webdriver.common {has_val}
-import webdriver.common.bidi {Script}
+import webdriver { CapabilityTypeDict, Dict, unwind }
+import webdriver.common { has_val }
+import webdriver.common.bidi
+import log
+import errors { WebDriverException }
 
-//create_caps - Makes a W3C alwaysMatch capabilities object.
+// create_caps - Makes a W3C alwaysMatch capabilities object.
 //
 //    Filters out capability names that are not in the W3C spec. Spec-compliant
 //    drivers will reject requests containing unknown capability names.
@@ -20,23 +22,29 @@ import webdriver.common.bidi {Script}
 fn create_caps(capabilities CapabilityTypeDict) CapabilityTypeDict {
 	caps := capabilities.clone()
 	always_match := Dict{}
-	return {'capabilities': {'firstMatch': [Dict{}], 'alwaysMatch': caps}}
+	return {
+		'capabilities': {
+			'firstMatch':  [Dict{}]
+			'alwaysMatch': caps
+		}
+	}
 }
 
 fn create_matches[O](options []O) {
-	capabilities := {'capabilities': map[string]striing{}}
+	capabilities := {
+		'capabilities': map[string]striing{}
+	}
 	opts := []string{}
 	for opt in options {
 		arrays.append(opts, [opt.to_capabilities()])
 	}
-	for i in 0..opts.len {
+	for i in 0 .. opts.len {
 		mut min_index := i
 		if i + 1 < opts.len {
 			first_keys := opts[min_index]
 		}
 	}
 }
-
 
 type Auth_ID_type = int | string
 
@@ -51,36 +59,40 @@ type Auth_ID_type = int | string
 //     - command_executor - remote_connection.RemoteConnection object used to execute commands.
 //     - error_handler - errorhandler.ErrorHandler object used to handle errors.
 pub struct RemoteWebDriver {
-	web_element           WebElement
-	shadowroot            ShadowRoot
+pub mut:
+	web_element WebElement
+	shadowroot  ShadowRoot
 	// command_executor      E
-	is_remote             bool
-	session_id            ?string
-	caps 		          CapabilityTypeDict
-	pinned_scripts        Dict
-	error_handler         ErrorHandler
-	switch_to             SwitchTo[D]
-	mobile                Mobile
-	file_detector         IFileDetector
-	locator_converter     LocatorConverter
-	web_element_cls       WebElement
-	authenticator_id      map[string]?Auth_ID_type
+	is_remote         bool
+	session_id        ?string
+	caps              CapabilityTypeDict
+	pinned_scripts    Dict
+	error_handler     ErrorHandler
+	switch_to         SwitchTo[D]
+	mobile            Mobile
+	file_detector     IFileDetector
+	locator_converter LocatorConverter
+	web_element_cls   WebElement
+	authenticator_id  map[string]?Auth_ID_type
 	// start_client
-	fedcm                 FedCM
-	websocket_connection  ?WebSocketConnection
-	script                ?Script
+	fedcm                &FedCM
+	websocket_connection ?WebSocketConnection
+	// script                ?&Script
 }
-pub fn RemoteWebDriver.init[E, O](command_executor E, options O ) RemoteWebDriver {
+
+pub fn RemoteWebDriver.init[E, O](command_executor E, options O) RemoteWebDriver {
 	mut ignore_local_proxy := false
 	mut capabilities := CapabilityTypeDict
-	if options is array {
+	if options is [array]O {
 		capabilities = create_matches(options)
 		ignore_local_proxy = false
 	} else {
 		capabilities = options.to_capabilities()
 		ignore_local_proxy = options.ignore_local_proxy
 	}
-	web_driver := RemoteWebDriver{command_executor: command_executor}
+	web_driver := RemoteWebDriver{
+		command_executor: command_executor
+	}
 	web_driver.start_session(capabilities)
 	web_driver.fedcm(web_driver)
 
@@ -97,7 +109,7 @@ fn (r &RemoteWebDriver) start_client() {}
 //        ----------
 //        capabilities : dict
 //            - A capabilities dict to start the session with.
-fn (r &RemoteWebDriver) start_session(capabilities map[string]map[string]map[string]string)  {
+fn (r &RemoteWebDriver) start_session(capabilities map[string]map[string]map[string]string) {
 	caps := create_caps(capabilities)
 	response := r.execute(Command.new_session, caps)['value']
 }
@@ -116,19 +128,21 @@ fn (r &RemoteWebDriver) start_session(capabilities map[string]map[string]map[str
 //        --------
 //          dict - The command's JSON response loaded into a dictionary object.
 fn (r &RemoteWebDriver) execute(driver_command Command, params CapabilityTypeDict) Dict {
-	mut params := r.wrap_value(params)
+	mut params2 := r.wrap_value(params)
 	if has_val(r.session_id) {
 		if !has_val(params) {
-			params = {'session_id': r.session_id}
-		}else if !'session_id' in params {
-			params['session_id'] = r.session_id
+			params2 = r.wrap_value({
+				'session_id': unwind(r.session_id)
+			})
+		} else if !'session_id' in params {
+			params2['session_id'] = unwind(r.session_id)
 		}
 	}
 
-	response := r.command_executor.execute(driver_command, params)
+	response := r.command_executor.execute(driver_command, params2)
 }
 
-fn (r &RemoteWebDriver) wrap_value(value CapabilityTypeDict ) CapabilityTypeDict {
+fn (r &RemoteWebDriver) wrap_value(value CapabilityTypeDict) CapabilityTypeDict {
 	if value is Dict {
 		mut converted := Dict{}
 		for k, v in value {
@@ -136,8 +150,37 @@ fn (r &RemoteWebDriver) wrap_value(value CapabilityTypeDict ) CapabilityTypeDict
 		}
 		return converted
 	}
-	if value is array {
-		return  [r.wrap_value(item ) for item in value]
+	if value is WebElement {
+		return {
+			'element-6066-11e4-a52e-4f735466cecf': value.id
+		}
+	}
+	if value is ShadowRoot {
+		return {
+			'shadow-6066-11e4-a52e-4f735466cecf': value.id
+		}
+	}
+	if value is []CapabilityTypeDict {
+		return value.map(r.wrap_value(it))
 	}
 }
 
+// fn (mut r RemoteWebDriver) script()  {
+// 	if !r.websocket_connection {
+// 		r.start_bidi()
+// 	}
+// 	if !r.script {
+// 		r.script = Script.init(r.websocket_connection)
+// 	}
+// }
+
+fn (mut r RemoteWebDriver) start_bidi() {
+	mut ws_url := ''
+	if 'webSocketUrl' in r.caps {
+		ws_url = r.caps['webSocketUrl']
+	} else {
+		log.error(WebDriverException{ msg: 'Unable to find URL to connect to from capabilities' }.str())
+		exit(1)
+	}
+	r.websocket_connection = WebSocketConnection.init(ws_url)
+}
